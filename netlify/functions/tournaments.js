@@ -21,6 +21,7 @@ const QUERY = `
         afterDate: $afterDate
         beforeDate: $beforeDate
         hasOnlineEvents: false
+        countryCode: "JP"
       }
     }) {
       nodes {
