@@ -1,0 +1,18 @@
+[
+  {
+    "id": "manual_example_1",
+    "source": "manual",
+    "name": "サンプル大会（承認済み）",
+    "startAt": 1753200000,
+    "endAt": 1753200000,
+    "city": "東京",
+    "countryCode": "JP",
+    "venueName": "サンプル会場",
+    "venueAddress": "東京都渋谷区",
+    "numAttendees": 32,
+    "url": "https://tonamel.com/competition/xxxxx",
+    "platform": "tonamel",
+    "game": "Super Smash Bros. Ultimate",
+    "images": []
+  }
+]

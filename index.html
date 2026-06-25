@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OSTT — Offline Smash Tournament Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #060612;
+  --surface:   #0C0C1E;
+  --card:      #10102A;
+  --border:    #242450;
+  --border-hi: #3A3A70;
+  --accent:    #7C6FFF;
+  --accent-hi: #A599FF;
+  --accent2:   #3D8EFF;
+  --gold:      #C4A8FF;
+  --text:      #FFFFFF;
+  --muted:     #7070A8;
+  --muted-hi:  #B0B0D8;
+  --green:     #2EEFAA;
+  --red:       #FF6B8A;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Noto Sans JP', sans-serif; min-height: 100vh; }
+
+/* ── HEADER ── */
+header {
+  background: rgba(7,7,15,0.96);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px; height: 54px;
+  display: flex; align-items: center; gap: 14px;
+  position: sticky; top: 0; z-index: 50;
+}
+.logo {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px; font-weight: 700; letter-spacing: 0.1em;
+  line-height: 1;
+}
+.logo-main { color: var(--text); }
+.logo-main em { color: var(--accent); font-style: normal; }
+.logo-sub {
+  font-size: 10px; color: var(--muted); letter-spacing: 0.05em;
+  font-family: 'Noto Sans JP', sans-serif; font-weight: 400;
+  margin-top: 2px;
+}
+.powered {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: var(--muted);
+  border: 1px solid var(--border); padding: 2px 7px; border-radius: 2px;
+}
+.header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.last-updated { font-size: 11px; color: var(--muted); font-family: 'Share Tech Mono', monospace; }
+
+/* ── NOTICE ── */
+.site-notice {
+  background: rgba(108,99,255,0.07);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 20px;
+  font-size: 11px; color: var(--muted);
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.site-notice strong { color: var(--muted-hi); }
+
+/* ── HERO ── */
+.hero {
+  padding: 28px 20px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px;
+  background: linear-gradient(180deg, rgba(108,99,255,0.04) 0%, transparent 100%);
+}
+.hero-eyebrow {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px; color: var(--accent);
+  letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 6px;
+}
+.hero-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(26px, 5vw, 42px); font-weight: 700;
+  line-height: 1.1; letter-spacing: 0.04em;
+}
+.hero-title span { color: var(--accent); }
+.hero-subtitle { color: var(--muted-hi); font-size: 15px; margin-top: 4px; font-weight: 500; }
+.hero-sub { color: var(--muted); font-size: 12px; margin-top: 5px; }
+
+.hero-stats { display: flex; gap: 24px; margin-left: auto; }
+.stat-block { text-align: center; }
+.stat-num {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 30px; font-weight: 700; line-height: 1;
+  color: var(--gold);
+}
+.stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ── FILTERS ── */
+.filters {
+  padding: 10px 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+  position: sticky; top: 54px; z-index: 40;
+}
+.search-wrap { position: relative; }
+.search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); opacity: 0.35; pointer-events: none; }
+input[type="search"] {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 13px;
+  padding: 8px 12px 8px 32px; border-radius: 4px; width: 200px; outline: none;
+  transition: border-color 0.2s;
+}
+input[type="search"]:focus { border-color: var(--accent); }
+select {
+  background: var(--bg); border: 1px solid var(--border); color: var(--text);
+  font-family: 'Noto Sans JP', sans-serif; font-size: 13px;
+  padding: 8px 12px; border-radius: 4px; outline: none; cursor: pointer;
+  transition: border-color 0.2s; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235A5A88' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px;
+}
+select:focus { border-color: var(--accent); }
+
+.filter-chips { display: flex; gap: 4px; }
+.chip {
+  font-size: 12px; padding: 6px 11px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer; border-radius: 4px;
+  font-family: 'Noto Sans JP', sans-serif; transition: all 0.15s; white-space: nowrap;
+}
+.chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip:hover:not(.on) { border-color: var(--border-hi); color: var(--text); }
+.filter-right { margin-left: auto; font-size: 12px; color: var(--muted); }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 820px; }
+thead th {
+  background: var(--surface); padding: 10px 14px; text-align: left;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap;
+  cursor: pointer; user-select: none;
+}
+thead th:hover { color: var(--text); }
+thead th.sort-asc::after  { content: ' ↑'; color: var(--accent); }
+thead th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+thead th.no-sort { cursor: default; }
+thead th.no-sort:hover { color: var(--muted); }
+
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer; }
+tbody tr:hover { background: rgba(108,99,255,0.05); }
+tbody tr.past-row { opacity: 0.45; }
+td { padding: 11px 14px; vertical-align: top; font-size: 13px; }
+
+/* name cell */
+.td-name { display: flex; align-items: flex-start; gap: 10px; }
+.t-icon { width: 38px; height: 38px; border-radius: 4px; object-fit: cover; background: var(--border); flex-shrink: 0; margin-top: 2px; }
+.t-icon-ph { width: 38px; height: 38px; border-radius: 5px; background: linear-gradient(135deg, var(--border), var(--border-hi)); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; margin-top: 2px; }
+.t-name-text { font-weight: 700; font-size: 13px; line-height: 1.35; max-width: 260px; }
+.t-name-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* date cell */
+.td-date { font-family: 'Share Tech Mono', monospace; font-size: 12px; white-space: nowrap; }
+.td-date .date-end { color: var(--muted); font-size: 11px; margin-top: 2px; }
+.reg-closes { font-size: 10px; color: var(--red); margin-top: 4px; }
+.reg-open   { font-size: 10px; color: var(--green); margin-top: 4px; }
+
+/* location */
+.td-loc { font-size: 12px; white-space: nowrap; }
+.td-loc strong { color: var(--text); display: block; font-weight: 500; }
+.td-loc span   { color: var(--muted); font-size: 11px; }
+
+/* ── REGISTRATION CELL ── */
+.td-reg { min-width: 180px; }
+.event-row { margin-bottom: 8px; }
+.event-row:last-child { margin-bottom: 0; }
+.event-name { font-size: 11px; color: var(--muted); margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+.event-name strong { color: var(--text); font-size: 12px; }
+
+.reg-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.reg-bar-bg { flex: 1; height: 4px; background: var(--border); border-radius: 3px; overflow: hidden; min-width: 80px; }
+.reg-bar-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.5s ease;
+}
+.reg-bar-fill.full { background: linear-gradient(90deg, var(--gold), #ec4899); }
+.reg-counts { font-family: 'Share Tech Mono', monospace; font-size: 11px; white-space: nowrap; color: var(--muted); }
+.reg-counts em { color: var(--gold); font-style: normal; font-size: 13px; font-weight: 700; }
+
+.reg-count-only { font-family: 'Rajdhani', sans-serif; font-size: 17px; font-weight: 700; color: var(--gold); }
+.reg-count-only span { font-size: 11px; color: var(--muted); font-family: 'Noto Sans JP', sans-serif; font-weight: 400; margin-left: 2px; }
+
+/* Wave */
+.waves-wrap { margin-top: 5px; }
+.wave-item { font-size: 10px; color: var(--accent2); font-family: 'Share Tech Mono', monospace; margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+.wave-label { color: var(--muted); }
+
+/* status badge */
+.badge { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; padding: 3px 8px; border-radius: 3px; text-transform: uppercase; white-space: nowrap; display: inline-block; }
+.badge.upcoming { background: rgba(167,139,250,0.12); color: var(--gold); border: 1px solid rgba(167,139,250,0.3); }
+.badge.ongoing  { background: rgba(52,211,153,0.1);  color: var(--green); border: 1px solid rgba(52,211,153,0.25); }
+.badge.past     { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+
+/* link */
+.td-link a { font-size: 11px; color: var(--accent-hi); text-decoration: none; font-weight: 700; letter-spacing: 0.05em; white-space: nowrap; }
+.td-link a:hover { text-decoration: underline; }
+
+/* platform badge */
+.plat-badge { font-size: 9px; padding: 2px 5px; border-radius: 2px; font-weight: 700; letter-spacing: 0.08em; vertical-align: middle; margin-left: 5px; }
+.plat-tonamel { background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.3); color: var(--accent2); }
+.plat-other   { background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); color: var(--gold); }
+
+/* ── LOADING / EMPTY ── */
+.state { padding: 80px 20px; display: none; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.state.on { display: flex; }
+.spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.state-title { font-family: 'Rajdhani', sans-serif; font-size: 20px; font-weight: 700; color: var(--muted); }
+.state-sub { font-size: 13px; color: var(--muted); }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 24px 20px;
+  background: var(--surface);
+}
+.footer-inner {
+  max-width: 900px; margin: 0 auto;
+  display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start;
+  justify-content: space-between;
+}
+.footer-credit { font-size: 12px; color: var(--muted); line-height: 1.7; }
+.footer-credit strong { color: var(--muted-hi); }
+.footer-credit a { color: var(--accent-hi); text-decoration: none; }
+.footer-credit a:hover { text-decoration: underline; }
+.footer-note {
+  font-size: 11px; color: var(--muted); line-height: 1.7;
+  max-width: 420px;
+}
+.footer-note strong { color: var(--muted-hi); }
+
+@media (max-width: 640px) {
+  .hero-stats { display: none; }
+  .hero-title { font-size: 24px; }
+  input[type="search"] { width: 140px; }
+  .filter-right { display: none; }
+  .footer-inner { flex-direction: column; gap: 12px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-main">Smash <em>Tournament</em> Tracker</div>
+    <div class="logo-sub">スマブラオフ大会一覧</div>
+  </div>
+  <div class="powered">OSTT / via start.gg</div>
+  <div class="header-right">
+    <div class="last-updated" id="last-updated"></div>
+  </div>
+</header>
+
+<div class="site-notice">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.6"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+  <span>データは start.gg API より<strong>自動取得</strong>されます。更新タイミングにより、掲載情報が最新・正確でない場合があります。参加前は必ず各大会の公式ページでご確認ください。</span>
+</div>
+
+<div class="hero">
+  <div class="hero-left">
+    
+    <h1 class="hero-title">Offline Smash <span>Tournament</span> Tracker</h1>
+    <div class="hero-subtitle">スマブラオフ大会一覧</div>
+    <p class="hero-sub">start.gg に登録されたオフライン大会を横断検索</p>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-block"><div class="stat-num" id="stat-total">—</div><div class="stat-label">大会数</div></div>
+    <div class="stat-block"><div class="stat-num" id="stat-upcoming">—</div><div class="stat-label">近日開催</div></div>
+    <div class="stat-block"><div class="stat-num" id="stat-countries">—</div><div class="stat-label">開催国数</div></div>
+  </div>
+</div>
+
+<div class="filters">
+  <div class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input type="search" id="q" placeholder="大会名・地名で検索..." oninput="applyFilters()">
+  </div>
+
+  <select id="game-sel" onchange="loadData()">
+    <option value="1386">Ultimate</option>
+    <option value="1">Melee</option>
+    <option value="33602">Project+</option>
+    <option value="451">Wii U</option>
+    <option value="19">Brawl</option>
+  </select>
+
+  <select id="country-sel" onchange="applyFilters()">
+    <option value="JP">🇯🇵 日本</option>
+    <option value="">🌍 全世界</option>
+    <option value="US">🇺🇸 アメリカ</option>
+    <option value="KR">🇰🇷 韓国</option>
+    <option value="TW">🇹🇼 台湾</option>
+    <option value="GB">🇬🇧 イギリス</option>
+    <option value="DE">🇩🇪 ドイツ</option>
+    <option value="FR">🇫🇷 フランス</option>
+    <option value="AU">🇦🇺 オーストラリア</option>
+    <option value="CA">🇨🇦 カナダ</option>
+    <option value="MX">🇲🇽 メキシコ</option>
+  </select>
+
+  <div class="filter-chips">
+    <button class="chip on" data-status="upcoming" onclick="toggleChip(this)">近日開催</button>
+    <button class="chip on" data-status="ongoing"  onclick="toggleChip(this)">開催中</button>
+    <button class="chip"    data-status="past"      onclick="toggleChip(this)">終了済み</button>
+  </div>
+
+  <div class="filter-right" id="filter-count"></div>
+</div>
+
+<div id="loading" class="state on">
+  <div class="spinner"></div>
+  <div class="state-title">取得中...</div>
+</div>
+<div id="empty" class="state">
+  <div style="font-size:36px">🎮</div>
+  <div class="state-title">大会が見つかりません</div>
+  <div class="state-sub">条件を変えてみてください</div>
+</div>
+
+<div class="table-wrap" id="table-wrap" style="display:none">
+  <table>
+    <thead>
+      <tr>
+        <th onclick="sortBy('name')">大会名</th>
+        <th onclick="sortBy('startAt')">開催日</th>
+        <th onclick="sortBy('countryCode')">開催地</th>
+        <th class="no-sort">参加受付状況</th>
+        <th onclick="sortBy('_totalEntrants')">参加者数</th>
+        <th class="no-sort">ステータス</th>
+        <th class="no-sort">リンク</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-credit">
+      <strong>OSTT — Offline Smash Tournament Tracker</strong><br>
+      制作：げんしゃか / Genshaka
+      （<a href="https://x.com/takatou0711" target="_blank">@takatou0711</a>）<br>
+      データ提供：<a href="https://start.gg" target="_blank">start.gg</a>
+    </div>
+    <div class="footer-note">
+      本ツールは <strong>AIを活用して生成</strong> されており、動作・表示内容に不完全な点が含まれる場合があります。<br>
+      掲載情報は自動取得のため最新でない可能性があります。参加前は各大会の公式ページでご確認ください。<br>
+      お問い合わせは X（<a href="https://x.com/takatou0711" target="_blank">@takatou0711</a>）まで。
+    </div>
+  </div>
+</footer>
+
+<script>
+let allData = [];
+let sortKey = 'startAt';
+let sortDir = 1;
+let activeStatuses = new Set(['upcoming', 'ongoing']);
+
+const NOW = () => Math.floor(Date.now() / 1000);
+
+async function loadData() {
+  showState('loading');
+  const gameId = document.getElementById('game-sel').value;
+  try {
+    const res = await fetch(`/.netlify/functions/tournaments?gameId=${gameId}`);
+    if (!res.ok) throw new Error(res.status);
+    const json = await res.json();
+
+    allData = (json.tournaments || []).map(t => ({
+      ...t,
+      _totalEntrants: (t.events || []).reduce((s, e) => s + (e.numEntrants || 0), 0) || t.numAttendees || 0,
+    }));
+
+    const d = new Date(json.fetchedAt);
+    document.getElementById('last-updated').textContent =
+      '更新: ' + d.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' });
+
+    updateStats();
+    applyFilters();
+  } catch(e) {
+    showState('empty');
+    document.querySelector('#empty .state-sub').textContent = 'データ取得に失敗しました: ' + e.message;
+  }
+}
+
+function updateStats() {
+  const n = NOW();
+  const country = document.getElementById('country-sel').value;
+  const filtered = country ? allData.filter(t => t.countryCode === country) : allData;
+  document.getElementById('stat-total').textContent     = filtered.length;
+  document.getElementById('stat-upcoming').textContent  = filtered.filter(t => t.startAt > n).length;
+  document.getElementById('stat-countries').textContent = new Set(allData.map(t => t.countryCode).filter(Boolean)).size;
+}
+
+function getStatus(t) {
+  const n = NOW();
+  if (t.startAt > n) return 'upcoming';
+  if (t.endAt && t.endAt > n) return 'ongoing';
+  return 'past';
+}
+
+function applyFilters() {
+  const q       = document.getElementById('q').value.toLowerCase();
+  const country = document.getElementById('country-sel').value;
+
+  let list = allData.filter(t => {
+    if (q && !t.name.toLowerCase().includes(q) &&
+        !(t.city||'').toLowerCase().includes(q) &&
+        !(t.venueName||'').toLowerCase().includes(q)) return false;
+    if (country && t.countryCode !== country) return false;
+    if (!activeStatuses.has(getStatus(t))) return false;
+    return true;
+  });
+
+  list.sort((a, b) => {
+    let av = a[sortKey] ?? 0, bv = b[sortKey] ?? 0;
+    if (typeof av === 'string') { av = av.toLowerCase(); bv = String(bv).toLowerCase(); }
+    return av < bv ? -sortDir : av > bv ? sortDir : 0;
+  });
+
+  document.getElementById('filter-count').textContent = `${list.length} 件表示`;
+  updateStats();
+  renderTable(list);
+}
+
+function sortBy(key) {
+  if (sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = 1; }
+  document.querySelectorAll('thead th').forEach(th => th.classList.remove('sort-asc','sort-desc'));
+  const keys = ['name','startAt','countryCode',null,'_totalEntrants'];
+  const idx = keys.indexOf(key);
+  if (idx >= 0) document.querySelectorAll('thead th')[idx].classList.add(sortDir===1?'sort-asc':'sort-desc');
+  applyFilters();
+}
+
+function toggleChip(btn) {
+  const s = btn.dataset.status;
+  activeStatuses.has(s) ? activeStatuses.delete(s) : activeStatuses.add(s);
+  btn.classList.toggle('on', activeStatuses.has(s));
+  applyFilters();
+}
+
+function renderTable(list) {
+  if (!list.length) { showState('empty'); return; }
+  showState('table');
+
+  document.getElementById('tbody').innerHTML = list.map(t => {
+    const status = getStatus(t);
+    const now    = NOW();
+
+    const img   = t.images?.find(i => i.type==='profile') || t.images?.[0];
+    const thumb = img
+      ? `<img class="t-icon" src="${esc(img.url)}" alt="" loading="lazy">`
+      : `<div class="t-icon-ph">🎮</div>`;
+
+    const isManual  = t.source === 'manual';
+    const platBadge = isManual
+      ? `<span class="plat-badge ${t.platform==='tonamel'?'plat-tonamel':'plat-other'}">${(t.platform||'OTHER').toUpperCase()}</span>`
+      : '';
+    const rowUrl   = isManual ? (t.url||'#') : `https://www.start.gg/${t.slug||''}`;
+    const linkText = isManual
+      ? ({tonamel:'tonamel →',connpass:'connpass →',twitter:'X →',discord:'Discord →'}[t.platform]||'リンク →')
+      : 'start.gg →';
+
+    const startStr = fmtDate(t.startAt);
+    const endStr   = (t.endAt && t.endAt !== t.startAt) ? fmtDate(t.endAt) : '';
+
+    let regLine = '';
+    if (t.registrationClosesAt) {
+      const isOpen = t.registrationClosesAt > now;
+      regLine = `<div class="${isOpen?'reg-open':'reg-closes'}">${isOpen?'✔ 受付中 〆 ':'〆 受付終了 '}${fmtDateShort(t.registrationClosesAt)}</div>`;
+    }
+
+    let wavesHtml = '';
+    if (t.waves && t.waves.length > 0) {
+      wavesHtml = `<div class="waves-wrap">` +
+        t.waves.map(w => {
+          const wS = fmtDateShort(w.startAt);
+          const wE = w.endAt ? fmtDateShort(w.endAt) : '';
+          return `<div class="wave-item"><span class="wave-label">Wave ${esc(w.identifier||'')}</span>${wS}${wE&&wE!==wS?` 〜 ${wE}`:''}</div>`;
+        }).join('') +
+      `</div>`;
+    }
+
+    const events = t.events || [];
+    let regCellHtml = '';
+    if (events.length === 0) {
+      regCellHtml = `<div class="reg-count-only">${t.numAttendees??'—'}<span>名</span></div>`;
+    } else {
+      regCellHtml = events.map(ev => {
+        const entrants = ev.numEntrants ?? 0;
+        const maxEnt   = ev.maxEntrants;
+        const evOpen   = ev.registrationClosesAt ? ev.registrationClosesAt > now : null;
+
+        let barHtml = '';
+        if (maxEnt && maxEnt > 0) {
+          const pct  = Math.min(100, Math.round((entrants / maxEnt) * 100));
+          barHtml = `<div class="reg-bar-wrap">
+            <div class="reg-bar-bg"><div class="reg-bar-fill${pct>=100?' full':''}" style="width:${pct}%"></div></div>
+            <div class="reg-counts"><em>${entrants}</em><span style="color:var(--muted)"> / ${maxEnt}</span></div>
+          </div>`;
+        } else {
+          barHtml = `<div class="reg-counts"><em>${entrants}</em> <span>名</span></div>`;
+        }
+
+        const evBadge = evOpen===true
+          ? `<span style="font-size:9px;color:var(--green);margin-left:4px;">受付中</span>`
+          : evOpen===false
+            ? `<span style="font-size:9px;color:var(--muted);margin-left:4px;">受付終了</span>`
+            : '';
+
+        return `<div class="event-row">
+          <div class="event-name"><strong>${esc(ev.name||'—')}</strong>${evBadge}</div>
+          ${barHtml}
+        </div>`;
+      }).join('');
+    }
+
+    const total = t._totalEntrants || t.numAttendees || '—';
+    const badgeLabel = {upcoming:'近日開催',ongoing:'開催中',past:'終了'}[status];
+
+    return `<tr class="${status==='past'?'past-row':''}" onclick="window.open('${esc(rowUrl)}','_blank')">
+      <td>
+        <div class="td-name">
+          ${thumb}
+          <div>
+            <div class="t-name-text">${esc(t.name)}${platBadge}</div>
+            ${t.venueName ? `<div class="t-name-sub">${esc(t.venueName)}</div>` : ''}
+          </div>
+        </div>
+      </td>
+      <td class="td-date">
+        ${startStr}
+        ${endStr ? `<div class="date-end">〜 ${endStr}</div>` : ''}
+        ${regLine}
+        ${wavesHtml}
+      </td>
+      <td class="td-loc">
+        <strong>${esc(t.city||'—')} ${flagOf(t.countryCode)}</strong>
+        ${t.countryCode ? `<span>${t.countryCode}</span>` : ''}
+      </td>
+      <td class="td-reg">${regCellHtml}</td>
+      <td><div class="reg-count-only">${total}<span>名</span></div></td>
+      <td><span class="badge ${status}">${badgeLabel}</span></td>
+      <td class="td-link"><a href="${esc(rowUrl)}" target="_blank" onclick="event.stopPropagation()">${linkText}</a></td>
+    </tr>`;
+  }).join('');
+}
+
+function showState(s) {
+  document.getElementById('loading').classList.toggle('on', s==='loading');
+  document.getElementById('empty').classList.toggle('on', s==='empty');
+  document.getElementById('table-wrap').style.display = s==='table' ? '' : 'none';
+}
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  return new Date(ts*1000).toLocaleDateString('ja-JP',{year:'numeric',month:'short',day:'numeric',weekday:'short'});
+}
+function fmtDateShort(ts) {
+  if (!ts) return '—';
+  return new Date(ts*1000).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'});
+}
+function flagOf(code) {
+  return {JP:'🇯🇵',US:'🇺🇸',KR:'🇰🇷',TW:'🇹🇼',GB:'🇬🇧',DE:'🇩🇪',FR:'🇫🇷',AU:'🇦🇺',CA:'🇨🇦',MX:'🇲🇽'}[code]||code||'';
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+loadData();
+</script>
+</body>
+</html>
