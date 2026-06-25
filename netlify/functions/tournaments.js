@@ -12,12 +12,12 @@ let cache = {};
 // スキーマエラーを起こしていたフィールドを除去:
 // Wave.endAt, Event.maxEntrants, Event.registrationClosesAt
 const QUERY = `
-  query TournamentsByGame($perPage: Int, $videogameId: ID!, $afterDate: Timestamp, $beforeDate: Timestamp) {
+  query TournamentsByGame($perPage: Int, $afterDate: Timestamp, $beforeDate: Timestamp) {
     tournaments(query: {
       perPage: $perPage
       sortBy: "startAt asc"
       filter: {
-        videogameIds: [$videogameId]
+        videogameIds: [1386]
         afterDate: $afterDate
         beforeDate: $beforeDate
         hasOnlineEvents: false
@@ -78,8 +78,7 @@ exports.handler = async (event) => {
     return { statusCode: 204, headers };
   }
 
-  const gameId   = event.queryStringParameters?.gameId || '1386';
-  const cacheKey = `game_${gameId}`;
+  const cacheKey = 'jp_ultimate';
   const now      = Date.now();
 
   if (cache[cacheKey] && now - cache[cacheKey].ts < CACHE_TTL) {
@@ -100,7 +99,7 @@ exports.handler = async (event) => {
 
   try {
     const json = await httpsPost(
-      { query: QUERY, variables: { perPage: 100, videogameId: gameId, afterDate, beforeDate } },
+      { query: QUERY, variables: { perPage: 100, afterDate, beforeDate } },
       apiKey
     );
 
