@@ -262,14 +262,6 @@ footer {
     <input type="search" id="q" placeholder="大会名・地名で検索..." oninput="applyFilters()">
   </div>
 
-  <select id="game-sel" onchange="loadData()">
-    <option value="1386">Ultimate</option>
-    <option value="1">Melee</option>
-    <option value="33602">Project+</option>
-    <option value="451">Wii U</option>
-    <option value="19">Brawl</option>
-  </select>
-
   <div class="filter-chips">
     <button class="chip on" data-size="all"   onclick="setSizeFilter(this)">All</button>
     <button class="chip"    data-size="large" onclick="setSizeFilter(this)">募集枠100人以上</button>
@@ -330,7 +322,7 @@ const NOW = () => Math.floor(Date.now() / 1000);
 
 async function loadData() {
   showState('loading');
-  const gameId = document.getElementById('game-sel').value;
+  const gameId = '1386'; // Ultimate固定
   try {
     const res = await fetch(`/.netlify/functions/tournaments?gameId=${gameId}`);
     if (!res.ok) throw new Error(res.status);
