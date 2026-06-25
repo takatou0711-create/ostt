@@ -1,4 +1,4 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -238,13 +238,14 @@ footer {
     
     <h1 class="hero-title">Offline Smash <span>Tournament</span> Tracker</h1>
     <div class="hero-subtitle">スマブラオフ大会一覧</div>
-    <p class="hero-notice">データは start.gg API より自動取得されます。更新タイミングにより掲載情報が最新・正確でない場合があります。参加前は必ず各大会の公式ページでご確認ください。</p>
+    <p class="hero-notice">データは start.gg API より自動取得されます（本日より3ヶ月以内のデータを表示）。更新タイミングにより掲載情報が最新・正確でない場合があります。参加前は必ず各大会の公式ページでご確認ください。</p>
   </div>
     
   </div>
 </div>
 
 <div class="filters">
+  <div id="month-chips" style="display:flex;gap:4px;"></div>
   <div class="search-wrap">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -351,12 +352,19 @@ function getStatus(t) {
 
 function applyFilters() {
   const q       = document.getElementById('q').value.toLowerCase();
+  const monthSel = window._selectedMonth || '';
 
   let list = allData.filter(t => {
     if (q && !t.name.toLowerCase().includes(q) &&
         !(t.city||'').toLowerCase().includes(q) &&
         !(t.venueName||'').toLowerCase().includes(q)) return false;
     const entrants = t._totalEntrants || 0;
+    // 月フィルター
+    if (monthSel) {
+      const d = new Date(t.startAt * 1000);
+      const tMonth = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+      if (tMonth !== monthSel) return false;
+    }
     if (sizeFilter === 'large' && entrants < 100) return false;
     if (sizeFilter === 'small' && entrants >= 100) return false;
     return true;
@@ -495,6 +503,35 @@ function fmtDateShort(ts) {
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// 月ボタンを動的生成（今月から3ヶ月分 + Allボタン）
+(function buildMonthChips() {
+  const container = document.getElementById('month-chips');
+  window._selectedMonth = ''; // デフォルト全期間
+
+  const now = new Date();
+  const months = [{ label: 'All', value: '' }];
+  for (let i = 0; i < 3; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    const label = (d.getMonth() + 1) + '月';
+    months.push({ label, value });
+  }
+
+  months.forEach(({ label, value }) => {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (value === '' ? ' on' : '');
+    btn.textContent = label;
+    btn.dataset.month = value;
+    btn.onclick = function() {
+      window._selectedMonth = value;
+      document.querySelectorAll('#month-chips .chip').forEach(c => c.classList.remove('on'));
+      btn.classList.add('on');
+      applyFilters();
+    };
+    container.appendChild(btn);
+  });
+})();
 
 loadData();
 </script>
