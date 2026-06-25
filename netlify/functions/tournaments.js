@@ -12,13 +12,14 @@ let cache = {};
 // スキーマエラーを起こしていたフィールドを除去:
 // Wave.endAt, Event.maxEntrants, Event.registrationClosesAt
 const QUERY = `
-  query TournamentsByGame($perPage: Int, $videogameId: ID!, $afterDate: Timestamp) {
+  query TournamentsByGame($perPage: Int, $videogameId: ID!, $afterDate: Timestamp, $beforeDate: Timestamp) {
     tournaments(query: {
       perPage: $perPage
       sortBy: "startAt asc"
       filter: {
         videogameIds: [$videogameId]
         afterDate: $afterDate
+        beforeDate: $beforeDate
         hasOnlineEvents: false
       }
     }) {
@@ -30,15 +31,9 @@ const QUERY = `
         city countryCode
         venueName venueAddress
         images { url type }
-        waves {
-          id identifier
-          startAt
-        }
         events {
-          id name
+          name
           numEntrants
-          startAt
-          state
         }
       }
     }
@@ -99,11 +94,12 @@ exports.handler = async (event) => {
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'API key not configured' }) };
   }
 
-  const afterDate = Math.floor((now - 90 * 24 * 60 * 60 * 1000) / 1000);
+  const afterDate  = Math.floor(now / 1000);               // 現在以降
+    const beforeDate = Math.floor(now / 1000) + 90 * 24 * 60 * 60; // 3ヶ月以内
 
   try {
     const json = await httpsPost(
-      { query: QUERY, variables: { perPage: 50, videogameId: gameId, afterDate } },
+      { query: QUERY, variables: { perPage: 100, videogameId: gameId, afterDate, beforeDate } },
       apiKey
     );
 
