@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -254,11 +254,18 @@ footer {
 
   <div class="filter-chips">
     <button class="chip on" data-size="all"   onclick="setSizeFilter(this)">All</button>
-    <button class="chip"    data-size="large" onclick="setSizeFilter(this)">募集枠100人以上</button>
-    <button class="chip"    data-size="small" onclick="setSizeFilter(this)">募集枠100人以下</button>
+    <button class="chip"    data-size="large" onclick="setSizeFilter(this)">参加者100人以上</button>
+    <button class="chip"    data-size="small" onclick="setSizeFilter(this)">参加者100人以下</button>
   </div>
 
   <div class="filter-right" id="filter-count"></div>
+  <a href="/submit.html" style="
+    font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:700;
+    letter-spacing:0.08em; color:#fff;
+    background:linear-gradient(135deg,#7C6FFF,#3D8EFF);
+    padding:7px 14px; border-radius:4px; text-decoration:none;
+    white-space:nowrap; opacity:1; transition:opacity 0.2s;
+  " onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">+ 大会を投稿</a>
 </div>
 
 <div id="loading" class="state on">
@@ -418,12 +425,7 @@ function renderTable(list) {
     // 総参加者数
     const total = t._totalEntrants || t.numAttendees || 0;
     // 受付状況バッジ
-    const regOpen = t.registrationClosesAt ? t.registrationClosesAt > now : null;
-    const regBadge = regOpen === true
-      ? `<span style="font-size:10px;color:var(--green);font-weight:700;">✔ 受付中</span>`
-      : regOpen === false
-        ? `<span style="font-size:10px;color:var(--muted);">受付終了</span>`
-        : '';
+    const regBadge = ''; // 受付情報は開催日列に表示
 
     let regCellHtml = '';
     if (events.length === 0) {
