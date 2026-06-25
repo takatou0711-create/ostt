@@ -5,10 +5,12 @@ const path  = require('path');
 
 const ENDPOINT_HOST = 'api.start.gg';
 const ENDPOINT_PATH = '/gql/alpha';
-const CACHE_TTL     = 10 * 60 * 1000; // 10分
+const CACHE_TTL     = 10 * 60 * 1000;
 
 let cache = {};
 
+// スキーマエラーを起こしていたフィールドを除去:
+// Wave.endAt, Event.maxEntrants, Event.registrationClosesAt
 const QUERY = `
   query TournamentsByGame($perPage: Int, $videogameId: ID!, $afterDate: Timestamp) {
     tournaments(query: {
@@ -28,19 +30,21 @@ const QUERY = `
         city countryCode
         venueName venueAddress
         images { url type }
-        waves { id identifier startAt endAt }
+        waves {
+          id identifier
+          startAt
+        }
         events {
           id name
-          numEntrants maxEntrants
-          registrationClosesAt
-          startAt state
+          numEntrants
+          startAt
+          state
         }
       }
     }
   }
 `;
 
-// https.request をPromise化
 function httpsPost(body, apiKey) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(body);
@@ -49,9 +53,9 @@ function httpsPost(body, apiKey) {
       path: ENDPOINT_PATH,
       method: 'POST',
       headers: {
-        'Content-Type':  'application/json',
+        'Content-Type':   'application/json',
         'Content-Length': Buffer.byteLength(data),
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization':  `Bearer ${apiKey}`,
       },
     };
     const req = https.request(options, (res) => {
@@ -114,7 +118,6 @@ exports.handler = async (event) => {
       platform: 'startgg',
     }));
 
-    // approved.json 読み込み
     let manualTournaments = [];
     try {
       const raw = fs.readFileSync(path.join(process.cwd(), 'approved.json'), 'utf8');
