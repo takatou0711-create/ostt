@@ -1,14 +1,14 @@
 // netlify/functions/tournaments.js
-// start.gg GraphQL proxy + approved.json マージ（10分キャッシュ）
+const https = require('https');
+const fs    = require('fs');
+const path  = require('path');
 
-const ENDPOINT = 'https://api.start.gg/gql/alpha';
-const CACHE_TTL = 10 * 60 * 1000;
-const fs   = require('fs');
-const path = require('path');
+const ENDPOINT_HOST = 'api.start.gg';
+const ENDPOINT_PATH = '/gql/alpha';
+const CACHE_TTL     = 10 * 60 * 1000; // 10分
 
 let cache = {};
 
-// events・waves・registrationClosesAt を追加取得
 const QUERY = `
   query TournamentsByGame($perPage: Int, $videogameId: ID!, $afterDate: Timestamp) {
     tournaments(query: {
@@ -28,22 +28,45 @@ const QUERY = `
         city countryCode
         venueName venueAddress
         images { url type }
-        waves {
-          id identifier
-          startAt endAt
-        }
+        waves { id identifier startAt endAt }
         events {
           id name
-          numEntrants
-          maxEntrants
+          numEntrants maxEntrants
           registrationClosesAt
-          startAt
-          state
+          startAt state
         }
       }
     }
   }
 `;
+
+// https.request をPromise化
+function httpsPost(body, apiKey) {
+  return new Promise((resolve, reject) => {
+    const data = JSON.stringify(body);
+    const options = {
+      hostname: ENDPOINT_HOST,
+      path: ENDPOINT_PATH,
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Content-Length': Buffer.byteLength(data),
+        'Authorization': `Bearer ${apiKey}`,
+      },
+    };
+    const req = https.request(options, (res) => {
+      let raw = '';
+      res.on('data', chunk => raw += chunk);
+      res.on('end', () => {
+        try { resolve(JSON.parse(raw)); }
+        catch(e) { reject(new Error('JSON parse error: ' + raw.slice(0, 200))); }
+      });
+    });
+    req.on('error', reject);
+    req.write(data);
+    req.end();
+  });
+}
 
 exports.handler = async (event) => {
   const headers = {
@@ -55,11 +78,10 @@ exports.handler = async (event) => {
     return { statusCode: 204, headers };
   }
 
-  const gameId    = event.queryStringParameters?.gameId || '1386';
-  const cacheKey  = `game_${gameId}`;
-  const now       = Date.now();
+  const gameId   = event.queryStringParameters?.gameId || '1386';
+  const cacheKey = `game_${gameId}`;
+  const now      = Date.now();
 
-  // キャッシュヒット
   if (cache[cacheKey] && now - cache[cacheKey].ts < CACHE_TTL) {
     return {
       statusCode: 200,
@@ -76,19 +98,11 @@ exports.handler = async (event) => {
   const afterDate = Math.floor((now - 90 * 24 * 60 * 60 * 1000) / 1000);
 
   try {
-    const res = await fetch(ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        query: QUERY,
-        variables: { perPage: 100, videogameId: gameId, afterDate },
-      }),
-    });
+    const json = await httpsPost(
+      { query: QUERY, variables: { perPage: 100, videogameId: gameId, afterDate } },
+      apiKey
+    );
 
-    const json = await res.json();
     if (json.errors) {
       return { statusCode: 502, headers, body: JSON.stringify({ error: 'start.gg error', detail: json.errors }) };
     }
@@ -103,10 +117,8 @@ exports.handler = async (event) => {
     // approved.json 読み込み
     let manualTournaments = [];
     try {
-      const approvedPath = path.join(process.cwd(), 'approved.json');
-      const raw    = fs.readFileSync(approvedPath, 'utf8');
-      const parsed = JSON.parse(raw);
-      manualTournaments = parsed.filter(t => t.startAt >= afterDate);
+      const raw = fs.readFileSync(path.join(process.cwd(), 'approved.json'), 'utf8');
+      manualTournaments = JSON.parse(raw).filter(t => t.startAt >= afterDate);
     } catch (_) {}
 
     const tournaments = [...startggTournaments, ...manualTournaments]
