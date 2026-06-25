@@ -35,13 +35,6 @@ header {
   display: flex; align-items: center; gap: 14px;
   position: sticky; top: 0; z-index: 50;
 }
-.logo {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 18px; font-weight: 700; letter-spacing: 0.1em;
-  line-height: 1;
-}
-.logo-main { color: var(--text); }
-.logo-main em { color: var(--accent); font-style: normal; }
 .powered {
   font-family: 'Share Tech Mono', monospace;
   font-size: 10px; color: var(--muted);
@@ -234,10 +227,7 @@ footer {
 <body>
 
 <header>
-  <div class="logo">
-    <div class="logo-main">Smash <em>Tournament</em> Tracker</div>
-      </div>
-  <div class="header-right">
+  <div class="header-right" style="margin-left:0">
     <div class="last-updated" id="last-updated"></div>
   </div>
 </header>
@@ -250,7 +240,7 @@ footer {
     <div class="hero-subtitle">スマブラオフ大会一覧</div>
     <p class="hero-notice">データは start.gg API より自動取得されます。更新タイミングにより掲載情報が最新・正確でない場合があります。参加前は必ず各大会の公式ページでご確認ください。</p>
   </div>
-    <div class="stat-block"><div class="stat-num" id="stat-upcoming">—</div><div class="stat-label">近日開催</div></div>
+    
   </div>
 </div>
 
@@ -337,7 +327,6 @@ async function loadData() {
     document.getElementById('last-updated').textContent =
       '更新: ' + d.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' });
 
-    updateStats();
     applyFilters();
   } catch(e) {
     showState('empty');
