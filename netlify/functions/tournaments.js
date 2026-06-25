@@ -103,7 +103,7 @@ exports.handler = async (event) => {
 
   try {
     const json = await httpsPost(
-      { query: QUERY, variables: { perPage: 100, videogameId: gameId, afterDate } },
+      { query: QUERY, variables: { perPage: 50, videogameId: gameId, afterDate } },
       apiKey
     );
 
