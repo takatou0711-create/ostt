@@ -42,11 +42,6 @@ header {
 }
 .logo-main { color: var(--text); }
 .logo-main em { color: var(--accent); font-style: normal; }
-.logo-sub {
-  font-size: 10px; color: var(--muted); letter-spacing: 0.05em;
-  font-family: 'Noto Sans JP', sans-serif; font-weight: 400;
-  margin-top: 2px;
-}
 .powered {
   font-family: 'Share Tech Mono', monospace;
   font-size: 10px; color: var(--muted);
@@ -56,14 +51,6 @@ header {
 .last-updated { font-size: 11px; color: var(--muted); font-family: 'Share Tech Mono', monospace; }
 
 /* ── NOTICE ── */
-.site-notice {
-  background: rgba(108,99,255,0.07);
-  border-bottom: 1px solid var(--border);
-  padding: 8px 20px;
-  font-size: 11px; color: var(--muted);
-  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-}
-.site-notice strong { color: var(--muted-hi); }
 
 /* ── HERO ── */
 .hero {
@@ -85,6 +72,7 @@ header {
 .hero-title span { color: var(--accent); }
 .hero-subtitle { color: var(--muted-hi); font-size: 15px; margin-top: 4px; font-weight: 500; }
 .hero-sub { color: var(--muted); font-size: 12px; margin-top: 5px; }
+.hero-notice { color: var(--muted); font-size: 11px; margin-top: 8px; line-height: 1.6; max-width: 640px; }
 
 .hero-stats { display: flex; gap: 24px; margin-left: auto; }
 .stat-block { text-align: center; }
@@ -248,30 +236,21 @@ footer {
 <header>
   <div class="logo">
     <div class="logo-main">Smash <em>Tournament</em> Tracker</div>
-    <div class="logo-sub">スマブラオフ大会一覧</div>
-  </div>
-  <div class="powered">OSTT / via start.gg</div>
+      </div>
   <div class="header-right">
     <div class="last-updated" id="last-updated"></div>
   </div>
 </header>
 
-<div class="site-notice">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.6"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-  <span>データは start.gg API より<strong>自動取得</strong>されます。更新タイミングにより、掲載情報が最新・正確でない場合があります。参加前は必ず各大会の公式ページでご確認ください。</span>
-</div>
 
 <div class="hero">
   <div class="hero-left">
     
     <h1 class="hero-title">Offline Smash <span>Tournament</span> Tracker</h1>
     <div class="hero-subtitle">スマブラオフ大会一覧</div>
-    <p class="hero-sub">start.gg に登録されたオフライン大会を横断検索</p>
+    <p class="hero-notice">データは start.gg API より自動取得されます。更新タイミングにより掲載情報が最新・正確でない場合があります。参加前は必ず各大会の公式ページでご確認ください。</p>
   </div>
-  <div class="hero-stats">
-    <div class="stat-block"><div class="stat-num" id="stat-total">—</div><div class="stat-label">大会数</div></div>
     <div class="stat-block"><div class="stat-num" id="stat-upcoming">—</div><div class="stat-label">近日開催</div></div>
-    <div class="stat-block"><div class="stat-num" id="stat-countries">—</div><div class="stat-label">開催国数</div></div>
   </div>
 </div>
 
@@ -289,20 +268,6 @@ footer {
     <option value="33602">Project+</option>
     <option value="451">Wii U</option>
     <option value="19">Brawl</option>
-  </select>
-
-  <select id="country-sel" onchange="applyFilters()">
-    <option value="JP">🇯🇵 日本</option>
-    <option value="">🌍 全世界</option>
-    <option value="US">🇺🇸 アメリカ</option>
-    <option value="KR">🇰🇷 韓国</option>
-    <option value="TW">🇹🇼 台湾</option>
-    <option value="GB">🇬🇧 イギリス</option>
-    <option value="DE">🇩🇪 ドイツ</option>
-    <option value="FR">🇫🇷 フランス</option>
-    <option value="AU">🇦🇺 オーストラリア</option>
-    <option value="CA">🇨🇦 カナダ</option>
-    <option value="MX">🇲🇽 メキシコ</option>
   </select>
 
   <div class="filter-chips">
@@ -330,9 +295,8 @@ footer {
       <tr>
         <th onclick="sortBy('name')">大会名</th>
         <th onclick="sortBy('startAt')">開催日</th>
-        <th onclick="sortBy('countryCode')">開催地</th>
-        <th class="no-sort">参加受付状況</th>
-        <th onclick="sortBy('_totalEntrants')">参加者数</th>
+        <th onclick="sortBy('city')">開催地</th>
+        <th onclick="sortBy('_totalEntrants')">参加状況</th>
         <th class="no-sort">リンク</th>
       </tr>
     </thead>
@@ -389,14 +353,6 @@ async function loadData() {
   }
 }
 
-function updateStats() {
-  const n = NOW();
-  const country = document.getElementById('country-sel').value;
-  const filtered = country ? allData.filter(t => t.countryCode === country) : allData;
-  document.getElementById('stat-total').textContent     = filtered.length;
-  document.getElementById('stat-upcoming').textContent  = filtered.filter(t => t.startAt > n).length;
-  document.getElementById('stat-countries').textContent = new Set(allData.map(t => t.countryCode).filter(Boolean)).size;
-}
 
 function getStatus(t) {
   const n = NOW();
@@ -407,13 +363,11 @@ function getStatus(t) {
 
 function applyFilters() {
   const q       = document.getElementById('q').value.toLowerCase();
-  const country = document.getElementById('country-sel').value;
 
   let list = allData.filter(t => {
     if (q && !t.name.toLowerCase().includes(q) &&
         !(t.city||'').toLowerCase().includes(q) &&
         !(t.venueName||'').toLowerCase().includes(q)) return false;
-    if (country && t.countryCode !== country) return false;
     const entrants = t._totalEntrants || 0;
     if (sizeFilter === 'large' && entrants < 100) return false;
     if (sizeFilter === 'small' && entrants >= 100) return false;
@@ -427,7 +381,6 @@ function applyFilters() {
   });
 
   document.getElementById('filter-count').textContent = `${list.length} 件表示`;
-  updateStats();
   renderTable(list);
 }
 
@@ -481,40 +434,41 @@ function renderTable(list) {
     const wavesHtml = '';
 
     const events = t.events || [];
+    // 総参加者数
+    const total = t._totalEntrants || t.numAttendees || 0;
+    // 受付状況バッジ
+    const regOpen = t.registrationClosesAt ? t.registrationClosesAt > now : null;
+    const regBadge = regOpen === true
+      ? `<span style="font-size:10px;color:var(--green);font-weight:700;">✔ 受付中</span>`
+      : regOpen === false
+        ? `<span style="font-size:10px;color:var(--muted);">受付終了</span>`
+        : '';
+
     let regCellHtml = '';
     if (events.length === 0) {
-      regCellHtml = `<div class="reg-count-only">${t.numAttendees??'—'}<span>名</span></div>`;
+      // イベント情報なし：参加者数のみ
+      regCellHtml = `
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">
+          <span class="reg-count-only">${total}<span>名</span></span>
+          ${regBadge}
+        </div>`;
     } else {
-      regCellHtml = events.map(ev => {
+      // イベント別に表示
+      const evRows = events.map(ev => {
         const entrants = ev.numEntrants ?? 0;
-        const maxEnt   = ev.maxEntrants;
-        const evOpen   = ev.registrationClosesAt ? ev.registrationClosesAt > now : null;
-
-        let barHtml = '';
-        if (maxEnt && maxEnt > 0) {
-          const pct  = Math.min(100, Math.round((entrants / maxEnt) * 100));
-          barHtml = `<div class="reg-bar-wrap">
-            <div class="reg-bar-bg"><div class="reg-bar-fill${pct>=100?' full':''}" style="width:${pct}%"></div></div>
-            <div class="reg-counts"><em>${entrants}</em><span style="color:var(--muted)"> / ${maxEnt}</span></div>
-          </div>`;
-        } else {
-          barHtml = `<div class="reg-counts"><em>${entrants}</em> <span>名</span></div>`;
-        }
-
-        const evBadge = evOpen===true
-          ? `<span style="font-size:9px;color:var(--green);margin-left:4px;">受付中</span>`
-          : evOpen===false
-            ? `<span style="font-size:9px;color:var(--muted);margin-left:4px;">受付終了</span>`
-            : '';
-
         return `<div class="event-row">
-          <div class="event-name"><strong>${esc(ev.name||'—')}</strong>${evBadge}</div>
-          ${barHtml}
+          <div class="event-name"><strong>${esc(ev.name||'—')}</strong>
+            <span style="font-family:'Share Tech Mono',monospace;font-size:12px;color:var(--gold);margin-left:4px;">${entrants}名</span>
+          </div>
         </div>`;
       }).join('');
+      regCellHtml = `
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:6px;">
+          <span class="reg-count-only">${total}<span>名</span></span>
+          ${regBadge}
+        </div>
+        ${evRows}`;
     }
-
-    const total = t._totalEntrants || t.numAttendees || '—';
     const badgeLabel = {upcoming:'近日開催',ongoing:'開催中',past:'終了'}[status];
 
     return `<tr class="${status==='past'?'past-row':''}" onclick="window.open('${esc(rowUrl)}','_blank')">
@@ -533,11 +487,9 @@ function renderTable(list) {
         ${regLine}
       </td>
       <td class="td-loc">
-        <strong>${esc(t.city||'—')} ${flagOf(t.countryCode)}</strong>
-        ${t.countryCode ? `<span>${t.countryCode}</span>` : ''}
+        <strong>${esc(t.city||'—')}</strong>
       </td>
       <td class="td-reg">${regCellHtml}</td>
-      <td><div class="reg-count-only">${total}<span>名</span></div></td>
       <td class="td-link"><a href="${esc(rowUrl)}" target="_blank" onclick="event.stopPropagation()">${linkText}</a></td>
     </tr>`;
   }).join('');
@@ -556,9 +508,6 @@ function fmtDate(ts) {
 function fmtDateShort(ts) {
   if (!ts) return '—';
   return new Date(ts*1000).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'});
-}
-function flagOf(code) {
-  return {JP:'🇯🇵',US:'🇺🇸',KR:'🇰🇷',TW:'🇹🇼',GB:'🇬🇧',DE:'🇩🇪',FR:'🇫🇷',AU:'🇦🇺',CA:'🇨🇦',MX:'🇲🇽'}[code]||code||'';
 }
 function esc(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
